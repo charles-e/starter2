@@ -5,7 +5,7 @@
 - Vite
 - React
 - Mobx
-- Tailwind CSS (Just-in-time mode)
+- MaterialUI
 
 Devtools：
 - Eslint

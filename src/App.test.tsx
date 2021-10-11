@@ -9,8 +9,8 @@ test('renders Hello, World link', () => {
   expect(linkElement).toBeInTheDocument()
 })
 
-test('does not render an learn angular link', () => {
+test('does not render an learn example link', () => {
   const { queryByText } = render(<App />)
-  const linkElement = queryByText(/learn angular/i)
+  const linkElement = queryByText(/learn example/i)
   expect(linkElement).not.toBeInTheDocument()
 })
