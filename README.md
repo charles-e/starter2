@@ -1,22 +1,38 @@
-# React-vite-starter-kit
+# React-vite-mui-starter
+
 ## Stack
 
 - Typescript
 - Vite
 - React
 - Mobx
-- MaterialUI
+- MaterialUI (MUI)
 
 Devtools：
+
 - Eslint
 - Prettier
 - Jest
 
 ## Installation
 
-Clone the repo and run `npm install`
+```{bash}
+# install pnpm
+https://pnpm.io/installation
+
+# pnpm has the same usage of npm
+pnpm install
+```
 
 ## Start
 
-After the successfull installation of the packages: `npm run dev`
+```{bash}
+# dev
+pnpm run dev
 
+# production
+pnpm run build
+pnpm run serve
+```
+
+``
