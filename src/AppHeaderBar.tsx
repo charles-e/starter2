@@ -41,13 +41,8 @@ export default function AppHeaderBar() {
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static" color="primary" enableColorOnDark>
         <Toolbar variant="dense">
-          <IconButton
-            size="large"
-            edge="start"
-            aria-label="menu"
-          >
+
             <ModeToggle />
-          </IconButton>
 
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Fancy Safecoin App

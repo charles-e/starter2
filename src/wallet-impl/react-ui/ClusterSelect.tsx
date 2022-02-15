@@ -42,7 +42,7 @@ export default function ClusterSelect() {
                 label="Age"
                 onChange={changeEndpoint}
             >
-                {networks.map((nw, idx) => (<MenuItem value={nw}>{networkLabels[idx]}</MenuItem>))}
+                {networks.map((nw, idx) => (<MenuItem key={idx} value={nw}>{networkLabels[idx]}</MenuItem>))}
 
             </Select>
         </FormControl>)
