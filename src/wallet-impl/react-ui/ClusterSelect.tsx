@@ -25,24 +25,25 @@ export default function ClusterSelect() {
         'Testnet'
     ];
 
-    const changeEndpoint = (e : DomEvent) => {
+    const changeEndpoint = (e: DomEvent) => {
         if (e && e.target && e.target.value) {
-        console.log(e.target.value);
-        setEndpoint(e?.target?.value);
+            console.log(e.target.value);
+            setEndpoint(e?.target?.value);
         }
     }
 
     return (
-        <FormControl margin="dense" variant="standard" sx={{ width: { xs: 150 }, }}>
+        <FormControl id="cluster-select-root" variant="standard" sx={{ width: { xs: 150 }, marginX: "1em" }}>
             <Select
-            autoWidth={true}
+                autoWidth={true}
                 labelId="demo-simple-select-label"
-                id="demo-simple-select"
+                id="cluster-select"
                 value={endpoint}
                 label="Age"
                 onChange={changeEndpoint}
+                sx={{fontSize:"smaller"}}
             >
-                {networks.map((nw, idx) => (<MenuItem key={idx} value={nw}>{networkLabels[idx]}</MenuItem>))}
+                {networks.map((nw, idx) => (<MenuItem sx={{ fontSize: "smaller" }} key={idx} value={nw}>{networkLabels[idx]}</MenuItem>))}
 
             </Select>
         </FormControl>)
