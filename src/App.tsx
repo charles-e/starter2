@@ -10,9 +10,9 @@ import { clusterApiUrl } from '@safecoin/web3.js';
 import { useSnackbar } from 'notistack';
 import React, { FC, ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { Theme } from './Theme';
-import { AppHeaderBar } from './AppHeaderBar';
-import ButtonAppBar from './ButtonAppBar';
+import  AppHeaderBar  from './AppHeaderBar';
 import { Box, Container, CssBaseline, Paper, Stack, styled } from '@mui/material';
+import SafecoinIcon from './resource/SafecoinIcon';
 
 export const App: FC = () => {
   return (
@@ -100,7 +100,7 @@ const Content: FC = () => {
     <>
       <CssBaseline />
 
-      <ButtonAppBar />
+      <AppHeaderBar />
       <MiddleStack maxWidth="sm" >
         {connected ? (
           <><Item>Connected</Item><Item>Wallet Balance: {balance}</Item></>
