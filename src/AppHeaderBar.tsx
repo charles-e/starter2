@@ -9,7 +9,6 @@ import { useTheme } from '@mui/material/styles';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { ColorModeContext } from './Theme';
-import SafecoinIcon from './resource/SafecoinIcon';
 import ClusterSelect from './wallet-impl/react-ui/ClusterSelect';
 
 export default function AppHeaderBar() {
@@ -45,7 +44,7 @@ export default function AppHeaderBar() {
             <ModeToggle />
 
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Fancy Safecoin App
+            Safecoin App
           </Typography>
           <ClusterSelect />
 

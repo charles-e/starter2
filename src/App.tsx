@@ -10,21 +10,20 @@ import { clusterApiUrl } from '@safecoin/web3.js';
 import { useSnackbar } from 'notistack';
 import React, { FC, ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { Theme } from './Theme';
-import  AppHeaderBar  from './AppHeaderBar';
-import { Box, Container, CssBaseline, Paper, Stack, styled } from '@mui/material';
-import SafecoinIcon from './resource/SafecoinIcon';
+import AppHeaderBar from './AppHeaderBar';
+import { Box, Container, CssBaseline, Drawer, Link, Paper, Stack, styled } from '@mui/material';
 
 export const App: FC = () => {
   return (
     <Theme>
-      <Context>
+      <CoinContext>
         <Content />
-      </Context>
+      </CoinContext>
     </Theme>
   );
 };
 
-const Context: FC<{ children: ReactNode }> = ({ children }) => {
+const CoinContext: FC<{ children: ReactNode }> = ({ children }) => {
   // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'.
   const network = WalletAdapterNetwork.Devnet;
 
@@ -89,7 +88,7 @@ const Content: FC = () => {
       console.log(`key ${wallet?.adapter?.publicKey?.toBase58()}`);
       if (wallet && wallet.adapter && wallet.adapter.publicKey) {
         console.log('fetching balance...');
-        let walletBalance = await connection.getBalance(wallet.adapter.publicKey);
+        let walletBalance = await connection?.getBalance(wallet.adapter.publicKey);
         console.log(`balance is ${walletBalance}`);
         setBalance(walletBalance);
       }
@@ -106,10 +105,19 @@ const Content: FC = () => {
           <><Item>Connected</Item><Item>Wallet Balance: {balance}</Item></>
         ) :
           (
-            <Item>
+            <><Item>
               wallet not connected :(
             </Item>
+            <Item><Link >REAMDE</Link></Item></>
           )}
       </MiddleStack>
     </>);
 };
+
+const TokenContext: FC<{ children: ReactNode }> = ({ children }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <Drawer>{children}</Drawer>
+  )
+
+}
