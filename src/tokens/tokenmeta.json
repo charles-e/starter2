@@ -1,0 +1,118 @@
+[
+    {
+        "nick": "TestToken",
+        "address": "abc123",
+        "org": "safecoin.org",
+        "url": "wa11yg8r.org",
+        "icon": "nope",
+        "decimals" : 9,
+        "hasFaucet": true,
+        "clusters": [
+            "testnet"
+        ]
+    },
+    {
+        "nick": "ARA",
+        "address": "ARA7gp3zXoTi9gzqKPW4xg5z4xwt9on7cfegCZ6VmhEm",
+        "org": "safecoin.org",
+        "url": "wa11yg8r.org",
+        "icon": "nope",
+        "decimals" : 9,
+        "authority" : "boss",
+        "hasFaucet": true,
+        "clusters": [
+            "devnet"
+        ]
+    },
+    {
+        "nick": "Boi Coin",
+        "address": "johnnfw6jnqnW7Kd5h6N1Hpye1sLWWE1gx7dZBXAPhh",
+        "org": "safecoin.org",
+        "url": "wa11yg8r.org",
+        "icon": "nope",
+        "decimals" : 9,
+        "authority" : "boss",
+        "hasFaucet": true,
+        "clusters": [
+            "devnet"
+        ]
+    },
+    {
+        "nick": "Super Swap",
+        "address": "suprgLjUnosxP6Y2g48uXn3Jd1cyRmscKaRooap9Wq7",
+        "org": "safecoin.org",
+        "url": "wa11yg8r.org",
+        "icon": "nope",
+        "decimals" : 9,
+        "authority" : "boss",
+        "hasFaucet": true,
+        "clusters": [
+            "devnet"
+        ]
+    },
+    {
+        "nick": "S7N",
+        "address": "v7NACe6ZGC9TjU2bd4knm8oYULrQjZxnJDsuGGGWMtm",
+        "org": "safecoin.org",
+        "url": "wa11yg8r.org",
+        "icon": "nope",
+        "decimals" : 9,
+        "authority" : "boss",
+        "hasFaucet": true,
+        "clusters": [
+            "devnet"
+        ]
+    },
+    {
+        "nick": "Gater",
+        "address": "w11yCpEEJCCS2gnr7xSPCuTbccaLrsDnq9DUJN9qEGu",
+        "org": "safecoin.org",
+        "url": "wa11yg8r.org",
+        "icon": "nope",
+        "decimals" : 9,
+        "authority" : "boss",
+        "hasFaucet": true,
+        "clusters": [
+            "devnet"
+        ]
+    },
+    {
+        "nick": "Safe Swap",
+        "address": "SwAPhfpwC4GCP2CrPEotCs7UckZiLFqYFmtYUjnBkNo",
+        "org": "safecoin.org",
+        "url": "wa11yg8r.org",
+        "icon": "nope",
+        "decimals" : 9,
+        "authority" : "boss",
+        "hasFaucet": true,
+        "clusters": [
+            "devnet"
+        ]
+    },
+    
+    
+    {
+        "nick": "Real",
+        "address": "abc123",
+        "org": "safecoin.org",
+        "url": "wa11yg8r.org",
+        "icon": "nope",
+        "decimals" : 9,
+        "hasFaucet": false,
+        "clusters": [
+            "mainnet-beta"
+        ]
+    },
+    {
+        "nick": "Zeus",
+        "address": "9234702230472094702",
+        "org": "safecoin.org",
+        "url": "wa11yg8r.org",
+        "icon": "nope",
+        "decimals" : 9,
+        "hasFaucet": false,
+        "clusters": [
+            "mainnet-beta", "devnet", "testnet"
+        ]
+    }
+]

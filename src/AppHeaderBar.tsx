@@ -10,8 +10,45 @@ import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { ColorModeContext } from './Theme';
 import ClusterSelect from './wallet-impl/react-ui/ClusterSelect';
+import { DrawerCtx } from './drawer/DrawerCtx';
+import { useContext } from 'react';
+import C2AOutlineIcon from '@mui/icons-material/PaidOutlined';
+import C2AIcon from '@mui/icons-material/Paid';
+import { useWallet } from './wallet-impl/wallet-adapter-react/useWallet';
+import { Tooltip } from '@mui/material';
 
 export default function AppHeaderBar() {
+
+
+  const DrawerToggle = () => {
+    const { visible, setVisible } = useContext(DrawerCtx);
+    const { connected } = useWallet();
+    function toggle() {
+      setVisible(!visible);
+    }
+    if (connected) {
+      return (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            bgcolor: 'inherit',
+            color: 'text.primary',
+            borderRadius: 1,
+          }}>
+          <Tooltip title="Show Available Tokens">
+            <IconButton sx={{ ml: 1 }} onClick={toggle} color="inherit">
+              {visible === true ? <C2AOutlineIcon /> : <C2AIcon />}
+            </IconButton>
+          </Tooltip>
+        </Box>);
+    } else {
+      return (<></>)
+    }
+  }
+
+
   const ModeToggle = () => {
     const theme = useTheme();
     const colorMode = React.useContext(ColorModeContext);
@@ -41,14 +78,15 @@ export default function AppHeaderBar() {
       <AppBar position="static" color="primary" enableColorOnDark>
         <Toolbar variant="dense">
 
-            <ModeToggle />
-
+          <ModeToggle />
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Safecoin App
           </Typography>
           <ClusterSelect />
 
           <WalletMultiButton />
+
+          <DrawerToggle />
         </Toolbar>
       </AppBar>
     </Box>

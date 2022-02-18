@@ -1,6 +1,6 @@
 import { WalletAdapterNetwork, WalletError } from './wallet-impl/abstract-wallet';
-import { WalletDialogProvider, WalletMultiButton } from './wallet-impl/material-ui'
-import { ConnectionProvider, useConnection, useWallet, WalletProvider } from './wallet-impl/wallet-adapter-react';
+import { WalletDialogProvider } from './wallet-impl/material-ui'
+import { ConnectionProvider, useConnection, useWallet, WalletProvider, ConnectContext } from './wallet-impl/wallet-adapter-react';
 import {
   SolletExtensionWalletAdapter,
   SolletWalletAdapter,
@@ -8,10 +8,13 @@ import {
 } from './wallet-impl/wallets';
 import { clusterApiUrl } from '@safecoin/web3.js';
 import { useSnackbar } from 'notistack';
-import React, { FC, ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { FC, ReactChild, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Theme } from './Theme';
 import AppHeaderBar from './AppHeaderBar';
-import { Box, Container, CssBaseline, Drawer, Link, Paper, Stack, styled } from '@mui/material';
+import {  Container, CssBaseline,  Link,  Paper, Stack, styled } from '@mui/material';
+import { DrawerProvider } from './drawer/DrawerProvider';
+import { TokenMetaProvider } from './tokens/TokenMetaProvider';
+import TokenDrawer from './drawer/TokenDrawer';
 
 export const App: FC = () => {
   return (
@@ -98,26 +101,68 @@ const Content: FC = () => {
   return (
     <>
       <CssBaseline />
+      <TokenMetaProvider>
+        <DrawerProvider>
+          <AppHeaderBar  />
+          <Container>
+            <MiddleStack maxWidth="sm" >
+              {connected ? (
+                <><Item>Connected</Item><Item>Wallet Balance: {balance}</Item></>
+              ) :
+                (
+                  <><Item>
+                    wallet not connected :(
+                  </Item>
+                    <Item><Link >REAMDE</Link></Item></>
+                )}
+            </MiddleStack>
+            <TokenDrawer />
+          </Container>
+        </DrawerProvider>
+      </TokenMetaProvider>
 
-      <AppHeaderBar />
-      <MiddleStack maxWidth="sm" >
-        {connected ? (
-          <><Item>Connected</Item><Item>Wallet Balance: {balance}</Item></>
-        ) :
-          (
-            <><Item>
-              wallet not connected :(
-            </Item>
-            <Item><Link >REAMDE</Link></Item></>
-          )}
-      </MiddleStack>
     </>);
 };
+/*
+let MyDrawer = () => {
+  const { connected } = useWallet();
+  const { visible, setVisible } = useContext(DrawerCtx);
+  const { availableTokens } = useContext(TokenCtx);
+  const { endpoint } = useConnection();
+  console.log(endpoint);
+  const possibleTokens = availableTokens(endpoint as Cluster);
+  console.log(possibleTokens);
+  const hideIt = () => {
+    setVisible(false);
+  }
+  const TokenCell = (token :TokenMeta,n :number) => {
+    let hasButton = token.hasFaucet && connected;
+    console.log(hasButton)
+    return (
+      <Grid  className="centered" key={n} xs={2} item>
+        <Typography variant="h6" component="div">
+          {token.nick}
+          </Typography>
+          <Typography variant="body1" component="div">
+          Sponsor: {token.org}
+          </Typography>
+        {hasButton && (<Button variant="contained">Get Tokens</Button>)}
+      </Grid>
+    );
+  }
 
-const TokenContext: FC<{ children: ReactNode }> = ({ children }) => {
-  const [open, setOpen] = useState(false);
+  const GridGuts = (tokens: TokenMeta[]) => {
+    return tokens.map((tok, i) => TokenCell(tok, i));
+  }
   return (
-    <Drawer>{children}</Drawer>
-  )
+    <Drawer sx={{padding:'1em'}} className="drawermargin" onClick={hideIt} hideBackdrop={true} 
+    anchor="bottom" open={visible}>
+      <Typography variant="h5">Available Tokens:</Typography>
+      <Grid container spacing={1}  columns={{ xs: 4, sm: 8, md: 12 }}>
+      { GridGuts(possibleTokens) }
+      </Grid>
 
-}
+    </Drawer>
+  )
+}*/
+

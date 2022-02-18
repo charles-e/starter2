@@ -34,38 +34,6 @@ const getDesignTokens = (mode: PaletteMode) => ({
     },
 });
 
-const theme = createTheme({
-    palette: {
-        mode: 'dark',
-        primary: {
-            main: deepPurple[700],
-        },
-    },
-    components: {
-        MuiButtonBase: {
-            styleOverrides: {
-                root: {
-                    justifyContent: 'flex-start',
-                },
-            },
-        },
-        MuiButton: {
-            styleOverrides: {
-                root: {
-                    textTransform: 'none',
-                    padding: '12px 16px',
-                },
-                startIcon: {
-                    marginRight: 8,
-                },
-                endIcon: {
-                    marginLeft: 8,
-                },
-            },
-        },
-    },
-});
-
 export default function ToggleColorMode() {
     const [mode, setMode] = React.useState<'light' | 'dark'>('light');
     const colorMode = React.useMemo(

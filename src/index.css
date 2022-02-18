@@ -12,3 +12,15 @@ body {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
+.drawermargin {
+  padding: 0.5em;
+  margin: 0.5em;
+}
+.centered {
+  text-align: center;
+}
+
+.MuiDrawer-paper{
+  padding: 0.5em;
+  margin: 0.5em;
+}

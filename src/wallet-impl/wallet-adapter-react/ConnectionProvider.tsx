@@ -4,7 +4,7 @@ import { WalletAdapterNetwork } from '../abstract-wallet';
 import { ConnectContext, IConnectContext } from './ConnectContext';
 
 
-export const ConnectionProvider: FC<IConnectContext> = ({
+export const ConnectionProvider: FC<Partial<IConnectContext>> = ({
     children,
     config = { commitment: 'confirmed' },
 }) => {
@@ -13,5 +13,8 @@ export const ConnectionProvider: FC<IConnectContext> = ({
     const conn = useMemo(() => new Connection(url, config), [endpoint, config]);
     const spSetEP = setEndpoint as (ep : string) => void; // make compiler shut up
 
-    return <ConnectContext.Provider value={{ connection: conn,endpoint: endpoint,config: config,setEndpoint: spSetEP }}>{children}</ConnectContext.Provider>;
+    return <ConnectContext.Provider value={{ connection: conn,
+        endpoint: endpoint,
+        config: config,
+        setEndpoint: spSetEP }}>{children}</ConnectContext.Provider>;
 };
