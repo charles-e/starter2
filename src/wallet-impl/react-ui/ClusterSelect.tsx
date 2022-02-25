@@ -1,12 +1,11 @@
-import { FormControl, InputLabel, Menu, MenuItem, Select, Tooltip } from "@mui/material";
-import { clusterApiUrl } from "@safecoin/web3.js";
-import React from "react";
-import { useContext, useState } from "react";
+import { FormControl, InputLabel, Menu, MenuItem, Select, SelectChangeEvent, Tooltip } from "@mui/material";
+import React, { ChangeEvent } from "react";
+import { useContext } from "react";
 import { ConnectContext } from "../wallet-adapter-react/ConnectContext";
 
 
 interface DomEvent {
-    target?: Element;
+    target?: HTMLElement;
 }
 
 export default function ClusterSelect() {
@@ -25,7 +24,7 @@ export default function ClusterSelect() {
         'Testnet'
     ];
 
-    const changeEndpoint = (e: DomEvent) => {
+    const changeEndpoint = (e: SelectChangeEvent<string>) => {
         if (e && e.target && e.target.value) {
             console.log(e.target.value);
             setEndpoint(e?.target?.value);

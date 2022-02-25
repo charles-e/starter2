@@ -21,6 +21,7 @@
     "@mui/icons-material": "^5.4.1",
     "@mui/material": "^5.4.1",
     "@safecoin/web3.js": "^1.29.4",
+    "@safecoin/safe-token": "0.1.7-b",
     "bs58": "^4.0.1",
     "buffer": "^6.0.3",
     "immutable-tuple": "^0.4.10",

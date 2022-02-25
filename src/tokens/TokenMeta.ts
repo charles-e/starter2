@@ -2,7 +2,7 @@ import { Cluster, PublicKey } from "@safecoin/web3.js";
 
 export interface TokenMeta {
     nick: string;
-    address?: PublicKey;
+    address:  PublicKey;
     authority?: string;
     org: string;
     url: string;

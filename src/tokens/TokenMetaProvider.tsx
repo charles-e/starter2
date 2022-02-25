@@ -5,12 +5,12 @@ import { TokenMeta } from '@/tokens/TokenMeta';
 import { Cluster, PublicKey } from '@safecoin/web3.js';
 
 const allTokensInitial: TokenMeta[] = tokensJSON.map((t) => {
-    let newAddr: PublicKey | null = null;
+    let newAddr: PublicKey = PublicKey.default;
     if (t.address) {
         try {
         newAddr = new PublicKey(t.address);
     } catch {
-
+        newAddr =  PublicKey.default;
     }
 }
     let ret = {
@@ -22,10 +22,9 @@ const allTokensInitial: TokenMeta[] = tokensJSON.map((t) => {
         hasFaucet: t.hasFaucet,
         authority: t?.authority,
         icon: t.icon,
+        address: newAddr ? newAddr : PublicKey.default
     };
-    if (newAddr) {
-        ret['address'] = newAddr;
-    }
+ 
     return ret;
 }) as TokenMeta[];
 

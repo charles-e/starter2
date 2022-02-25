@@ -19,7 +19,10 @@ function bufEq(buf1, buf2) {
   }
   return true;
 }
+
+
 export async function getOwnedTokenAccounts(connection, publicKey) {
+  console.log('getOwnedTokenAccounts');
   let filters = getOwnedAccountsFilters(publicKey);
   let resp = await connection._rpcRequest('getProgramAccounts', [
     TOKEN_PROGRAM_ID.toBase58(),
@@ -33,12 +36,13 @@ export async function getOwnedTokenAccounts(connection, publicKey) {
   if (resp.error) {
     throw new Error(
       'failed to get token accounts owned by ' +
-        publicKey.toBase58() +
-        ': ' +
-        resp.error.message,
+      publicKey.toBase58() +
+      ': ' +
+      resp.error.message,
     );
   }
-  return resp.result
+
+  const ret = resp.result
     .map(({ pubkey, account: { data, executable, owner, lamports } }) => {
       let buf = Buffer.from(data[0], 'base64');
       return {
@@ -68,6 +72,7 @@ export async function getOwnedTokenAccounts(connection, publicKey) {
         return false;
       });
     });
+  return ret;
 }
 
 export async function createAndInitializeMint({
