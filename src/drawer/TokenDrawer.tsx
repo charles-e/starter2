@@ -1,6 +1,6 @@
 
-import { Cluster, clusterApiUrl, Connection, Keypair, PublicKey, PublicKeyInitData, Signer, Transaction } from '@safecoin/web3.js';
-import React, { FC, ReactChild, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { Cluster, Connection, Keypair, PublicKey, PublicKeyInitData, Signer, Transaction } from '@safecoin/web3.js';
+import React, { FC, ReactChild, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import { Button, Container, CssBaseline, Drawer, Grid, Link, Paper, Stack, styled, Tooltip, Typography, useTheme } from '@mui/material';
 
 import { DrawerCtx } from './DrawerCtx';
@@ -10,13 +10,12 @@ import { formatTwoDecimals, getOwnedTokenAccountInfo } from '@/utils/tokens/util
 import { SignerWalletAdapter, WalletAdapter } from '@/wallet-impl/abstract-wallet';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@safecoin/safe-token';
 import { mintTo } from '@/utils/tokens/instructions';
-import { makeCreateInitTokenAcctIx } from '@/utils/tokens';
 import { AccountDataSize } from '../utils/tokens/data';
 import  boss  from '../resource/keys/boss.json';
 import { AirDropDialog } from './AirDropDialog';
 import { useVerifyTransaction } from '@/utils/notifications2';
-import { SignpostSharp } from '@mui/icons-material';
 import { createAssociatedTokenAccountInstruction } from '@/utils/tokens/tsInstructions';
+
 type TokenMapType = {
   [id: string]: TBD;
 }
@@ -34,13 +33,14 @@ type TBD = {
 }
 export default function TokenDrawer() {
   const theme = useTheme();
+  const [ txCount, setTxCount ] = useState(0); // bumped for each "transaction": will cause useEffect to fire
   const [ balanceSAFE, setBalanceSAFE ] = useState(0n);
   const [ openADD, setOpenADD ] = useState(false);
   const { connected, wallet } = useWallet();
   const { visible, setVisible } = useContext(DrawerCtx);
   const { availableTokens } = useContext(TokenCtx);
   const { endpoint, connection } = useConnection();
-  const [verifyTransaction,waiting] = useVerifyTransaction();
+  const [verifyTransaction] = useVerifyTransaction();
   const possibleTokens = availableTokens(endpoint as Cluster);
   const [tokenBalances, setTokenBalances] = useState<Map<string, TBD> | null>(null);
   const hideIt = () => {
@@ -134,6 +134,7 @@ export default function TokenDrawer() {
       const sig = connection.sendRawTransaction(buffer);
       if (sig) {
         await verifyTransaction(sig);
+        setTxCount(txCount + 1);
       }
     }
   }
@@ -206,7 +207,7 @@ export default function TokenDrawer() {
       }
     };
     getWalletData();
-  }, [connection, wallet?.readyState, visible]);
+  }, [connection, wallet?.readyState, visible, txCount]);
 
   // keep track of the SAFE balance
   useEffect(() => {
@@ -220,7 +221,7 @@ export default function TokenDrawer() {
       }
     }
     fetchBalance();
-    },[connection, wallet?.readyState, visible]);
+    },[connection, wallet?.readyState, visible, txCount]);
 
     const TokenCell = (token: TBD, n: number) => {
     const tokAddr = token.mint;
@@ -271,12 +272,11 @@ export default function TokenDrawer() {
       return data.map((tok, i) => TokenCell(tok, i));
     }
   }
-  const handleClickOpen = () => {
-    setOpenADD(true);
-  };
+
 
   const handleCloseADD = () => {
     setOpenADD(false);
+    setTxCount(txCount + 1);
   };
   const myColor = theme.palette.secondary.light;
   return (
@@ -290,9 +290,7 @@ export default function TokenDrawer() {
       <Grid container spacing={1} columns={{ xs: 4, sm: 8, md: 12 }}>
         {GridGuts(tokenBalances)}
       </Grid>
-      <AirDropDialog open={openADD}
-        onClose={handleCloseADD}
-        ></AirDropDialog>
+      <AirDropDialog open={openADD} onClose={handleCloseADD}> </AirDropDialog>
 
     </Drawer>
   )
