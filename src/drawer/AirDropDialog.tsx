@@ -21,8 +21,8 @@ export function AirDropDialog(props: any): JSX.Element {
   return (
     <Dialog  open={props.open}  style={{textAlign: "center"}}>
       <DialogTitle>You need a small amount of SAFE to fund token transactions.</DialogTitle>
-      <Button onClick={handleClickCash} disabled={verifying}>Click Here for Cash</Button>
-      {verifying && <CircularProgress style={{margin:"10px auto"}}/>}
+     {(!verifying) && <Button onClick={handleClickCash} disabled={verifying}>Click Here for Cash</Button>}
+      {verifying && <CircularProgress size={20} style={{margin:"10px auto"}}/>}
     </Dialog>
   );
 }
