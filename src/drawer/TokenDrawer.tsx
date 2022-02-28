@@ -1,17 +1,22 @@
 
-import { Cluster, clusterApiUrl, Connection, Keypair, PublicKey, PublicKeyInitData } from '@safecoin/web3.js';
+import { Cluster, clusterApiUrl, Connection, Keypair, PublicKey, PublicKeyInitData, Signer, Transaction } from '@safecoin/web3.js';
 import React, { FC, ReactChild, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { Button, Container, CssBaseline, Drawer, Grid, Link, Paper, Stack, styled, Typography } from '@mui/material';
+import { Button, Container, CssBaseline, Drawer, Grid, Link, Paper, Stack, styled, Tooltip, Typography, useTheme } from '@mui/material';
 
 import { DrawerCtx } from './DrawerCtx';
 import { TokenCtx } from '../tokens/TokenCtx';
-import { TokenMeta } from '../tokens/TokenMeta';
 import { useConnection, useWallet } from '@/wallet-impl/wallet-adapter-react';
-import { mintExisting } from '@/utils/tokens/index';
-import { getOwnedTokenAccountInfo } from '@/utils/tokens/util';
-import { WalletAdapter } from '@/wallet-impl/abstract-wallet';
-import { useSendTransaction } from '@/utils/notifications';
-import { stringify } from 'querystring';
+import { formatTwoDecimals, getOwnedTokenAccountInfo } from '@/utils/tokens/util';
+import { SignerWalletAdapter, WalletAdapter } from '@/wallet-impl/abstract-wallet';
+import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@safecoin/safe-token';
+import { mintTo } from '@/utils/tokens/instructions';
+import { makeCreateInitTokenAcctIx } from '@/utils/tokens';
+import { AccountDataSize } from '../utils/tokens/data';
+import  boss  from '../resource/keys/boss.json';
+import { AirDropDialog } from './AirDropDialog';
+import { useVerifyTransaction } from '@/utils/notifications2';
+import { SignpostSharp } from '@mui/icons-material';
+import { createAssociatedTokenAccountInstruction } from '@/utils/tokens/tsInstructions';
 type TokenMapType = {
   [id: string]: TBD;
 }
@@ -23,54 +28,123 @@ type TBD = {
   hasWallet: boolean,
   nick?: string,
   decimals?: number,
-  authority?: PublicKey,
-  address?: PublicKey,
+  authority?: string,
+  wallet?: PublicKey,
   org?: string
 }
 export default function TokenDrawer() {
+  const theme = useTheme();
+  const [ balanceSAFE, setBalanceSAFE ] = useState(0n);
+  const [ openADD, setOpenADD ] = useState(false);
   const { connected, wallet } = useWallet();
   const { visible, setVisible } = useContext(DrawerCtx);
   const { availableTokens } = useContext(TokenCtx);
   const { endpoint, connection } = useConnection();
-  const [sendTransaction] = useSendTransaction();
-  console.log(endpoint);
+  const [verifyTransaction,waiting] = useVerifyTransaction();
   const possibleTokens = availableTokens(endpoint as Cluster);
-  console.log(possibleTokens);
   const [tokenBalances, setTokenBalances] = useState<Map<string, TBD> | null>(null);
   const hideIt = () => {
     setVisible(false);
   }
-  async function mintFunToken(
+
+
+  function getAuthKeyPair() : Keypair {
+    // this doesnt work:
+    // const file = await import(/* @vite-ignore */ `/src/resource/keys/${authority}.json`);
+    // const response = await fetch(file.default);
+    // const text = await response.text();
+    // console.log(text);
+    // const auth = Keypair.fromSecretKey(Buffer.from(text));
+    return   Keypair.fromSecretKey(Buffer.from(boss));
+  }
+
+  // mint the token to the user's wallet.  If necessary, create the wallet.
+  async function mintTokenToWallet(params: {
     connection: Connection,
-    wallet: WalletAdapter,
+    wallet: SignerWalletAdapter,
     mint: PublicKey,
     authority: string,
-    targetAccount: PublicKey,
+    targetAccount: PublicKey | null,
     decimals: number
+  }
   ) {
+    if (balanceSAFE == 0n){
+      setOpenADD(true);
+      return;
+    }
+    const { wallet, connection, mint, authority, decimals } = params;
+    let { targetAccount } = params;
+    if (!wallet.publicKey) {
+      throw ('no wallet public key');
+    }
+
     if (wallet.publicKey) {
-      const file = await import(/* @vite-ignore */ `/src/resource/keys/${authority}.json`);
-      const response = await fetch(file.default);
-      const text = await response.text();
-      const auth = Keypair.fromSecretKey(Buffer.from(text));
-      const sig = mintExisting({
-        connection: connection,
-        wallet: wallet!.publicKey,
-        mintAuth: auth,
-        mint: mint,
-        targetAccount: targetAccount,
-        amount: Math.pow(10, decimals) * 100,
-      });
+      //
+      // Using the keypair that created the mint in order
+      // to send free tokens.  So yes, we have a keypair json file 
+      // embedded in the app and this is very not secure.  But token
+      // fountains should/will only exist on test/dev clusters. 
+      //
+      const auth = getAuthKeyPair();
+
+      let transaction = new Transaction();
+      let signers: Signer[] = [];
+
+      if (!targetAccount) {
+        
+        // creating the token wallet is necessary so its in the same transaction=
+        // with the token mint instruction.
+
+        targetAccount = await Token.getAssociatedTokenAddress(
+          ASSOCIATED_TOKEN_PROGRAM_ID,
+          TOKEN_PROGRAM_ID,
+          mint,
+          wallet.publicKey);
+
+        const minRent = await connection.getMinimumBalanceForRentExemption(
+          AccountDataSize()
+        );
+        let ix = createAssociatedTokenAccountInstruction(
+          {
+            associatedProgramId: ASSOCIATED_TOKEN_PROGRAM_ID,
+            programId : TOKEN_PROGRAM_ID,
+            associatedAccount: targetAccount, 
+            payer: wallet.publicKey,
+            owner: wallet.publicKey,
+            mint : mint, 
+          }
+        );
+        for (const i in ix) {
+          transaction.add(ix[i]);
+        }
+      }
+      transaction.add(
+        mintTo({
+          mint: mint,
+          destination: targetAccount,
+          amount: Math.pow(10, decimals) * 100,
+          mintAuthority: auth.publicKey,
+        }),
+      );
+      transaction.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
+      transaction.feePayer = wallet.publicKey;
+      transaction.partialSign(auth);
+      transaction = await wallet.signTransaction(transaction);
+      let buffer = transaction.serialize();
+      const sig = connection.sendRawTransaction(buffer);
       if (sig) {
-        sendTransaction(sig);
+        await verifyTransaction(sig);
       }
     }
   }
 
+  // pull and aggregate necessary token data, (balances, addresses etc)
   useEffect(() => {
     const getWalletData = async () => {
+      console.log(`getWalletData v: ${visible} c: ${connection} w ${wallet?.adapter}`);
       if (connection && wallet && wallet.adapter && visible) {
         const ownerKey = wallet.adapter.publicKey;
+        console.log(`ownerKey ${ownerKey?.toBase58()}`);
         const ownedMap: Map<string, TBD> = new Map();
         if (ownerKey) {
           console.log(ownerKey.toBase58());
@@ -79,36 +153,31 @@ export default function TokenDrawer() {
             infos.map((i) => {
               const quantData = i.amount.toBuffer();
               const quantBI = quantData.readBigUInt64LE(0);
-              /*const logData = {
-                mint: i.mint.toBase58(),
-                wallet: i.address.toBase58(),
-                quant: quantBI
-              }
-              console.log(logData);*/
               const tbd: Partial<TBD> = {
                 balance: quantBI,
                 mint: i.mint,
                 hasWallet: true,
-                address: i.address,
+                wallet: i.address,
               }
               ownedMap.set(i.mint.toBase58(), tbd as TBD);
             });
           }
+          console.log(`have ${possibleTokens.length} possible tokens.`);
           let all: TBD[] = await possibleTokens.map((tok) => {
             let exists = ownedMap.get(tok.address.toBase58());
             if (exists) {
               exists.hasFaucet = tok.hasFaucet;
               exists.nick = tok!.nick;
               if (tok.authority) {
-                try {
-                exists.authority = new PublicKey(tok.authority);
-                } catch(e : any){
-                  console.log(`error with auth ${tok.authority}`);
-                }
+                exists.authority = tok.authority;
               }
+
               if (tok.org) {
                 exists.org = tok.org;
               }
+
+              exists.decimals = tok.decimals;
+
               return exists;
             }
             else {
@@ -119,7 +188,8 @@ export default function TokenDrawer() {
                 balance: BigInt(0),
                 decimals: tok.decimals,
                 nick: tok.nick,
-                org: tok.org
+                org: tok.org,
+                authority: tok.authority
               }
             }
           });
@@ -130,21 +200,40 @@ export default function TokenDrawer() {
               retMap.set(info.mint.toBase58(), info);
             }
           }
+          console.log(`returning ${retMap.size} tokens`);
           setTokenBalances(retMap);
-          console.log(retMap);
         }
       }
     };
     getWalletData();
-  }, [connection, wallet]);
-  const TokenCell = (token: TBD, n: number) => {
+  }, [connection, wallet?.readyState, visible]);
 
-    let hasButton = token.hasFaucet && connected && connection;
+  // keep track of the SAFE balance
+  useEffect(() => {
+    async function fetchBalance() {
+
+      if (wallet && wallet.adapter && wallet.adapter.publicKey) {
+        let walletBalance = await connection?.getBalance(wallet.adapter.publicKey);
+        let biBal =  BigInt(walletBalance || 0n);
+        console.log(`drawer balance is ${biBal.toLocaleString()}`);
+        setBalanceSAFE(biBal);
+      }
+    }
+    fetchBalance();
+    },[connection, wallet?.readyState, visible]);
+
+    const TokenCell = (token: TBD, n: number) => {
     const tokAddr = token.mint;
     const tokAuth = token.authority;
-    const pubKey = wallet?.adapter.publicKey;
+    const pubKey = token.wallet;
+    const hasButton = token.hasFaucet && connection != null && connected
+      && undefined !== tokAddr && undefined !== tokAuth;
+    console.log(`TokenCell hasButton ${hasButton}`)
+    if (!hasButton) {
+      console.log({ "pubkey": pubKey, "tokAuth": tokAuth, "tokAddr": tokAddr })
+    }
     const biBalance = token.balance as bigint;
-    const dispBalance = formatToDec(biBalance || 0n,token.decimals);
+    const dispBalance = formatTwoDecimals(biBalance || 0n, token.decimals);
     return (
       <Grid className="centered" key={n} xs={2} item>
         <Typography variant="h6" component="div">
@@ -156,44 +245,56 @@ export default function TokenDrawer() {
         <Typography variant="body1" component="div">
           Balance: {dispBalance.toLocaleString()}
         </Typography>
-        {hasButton && connection
-          && wallet && wallet.adapter
-          && tokAddr && tokAuth
-          && pubKey &&
+        {hasButton &&
           (<Button variant="contained"
             onClick={() => {
-              mintFunToken(connection,
-                wallet!.adapter,
-                tokAddr,
-                tokAuth.toBase58(),
-                pubKey,
-                token.decimals || 9)
-            }}>Get Tokens</Button>)}
+              mintTokenToWallet(
+                {
+                  connection: connection!,
+                  wallet: wallet!.adapter as SignerWalletAdapter,
+                  mint: tokAddr!,
+                  authority: tokAuth,
+                  targetAccount: token.hasWallet ? pubKey! : null,
+                  decimals: token.decimals || 9
+                })
+            }
+            }>Get Tokens</Button>)}
       </Grid>
     );
   }
 
-  const GridGuts = (tokens?: Map<string, TBD>| null) => {
-    if (!tokens) { return (<div/>); }
+  const GridGuts = (tokens?: Map<string, TBD> | null) => {
+    if (!tokens) { return (<div />); }
     else {
       const data = Array.from(tokens.values());
-      console.log(data);
+      console.log(`GridGuts: ${data}`);
       return data.map((tok, i) => TokenCell(tok, i));
     }
   }
+  const handleClickOpen = () => {
+    setOpenADD(true);
+  };
+
+  const handleCloseADD = () => {
+    setOpenADD(false);
+  };
+  const myColor = theme.palette.secondary.light;
   return (
-    <Drawer sx={{ padding: '1em' }} className="drawermargin" onClick={hideIt} hideBackdrop={true}
+    <Drawer sx={{ padding: '1em' }} className="drawermargin" hideBackdrop={true}
       anchor="bottom" open={visible}>
-      <Typography variant="h5">Available Tokens:</Typography>
+        <Tooltip title="Click to Hide">
+        <Container style={{ backgroundColor: myColor }} sx={{width: "100%"}} onClick={hideIt}>
+        <Typography variant="h5">Available Tokens:</Typography>
+        </Container>
+        </Tooltip>
       <Grid container spacing={1} columns={{ xs: 4, sm: 8, md: 12 }}>
         {GridGuts(tokenBalances)}
       </Grid>
+      <AirDropDialog open={openADD}
+        onClose={handleCloseADD}
+        ></AirDropDialog>
 
     </Drawer>
   )
 }
 
-const formatToDec = (val: bigint, dec: number = 9) : bigint => {
-  const biDiv : bigint = BigInt(Math.pow(10,dec));
-  return val / biDiv;
-}

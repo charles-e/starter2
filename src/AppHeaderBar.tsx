@@ -75,7 +75,7 @@ export default function AppHeaderBar() {
   };
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static" color="primary" enableColorOnDark>
+      <AppBar position="static" sx={{ zIndex : 100}} color="primary" enableColorOnDark>
         <Toolbar variant="dense">
 
           <ModeToggle />

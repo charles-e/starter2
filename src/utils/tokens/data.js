@@ -41,3 +41,7 @@ export function getOwnedAccountsFilters(publicKey) {
     },
   ];
 }
+
+export function AccountDataSize() {
+  return ACCOUNT_LAYOUT.span;
+}

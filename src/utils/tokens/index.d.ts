@@ -6,7 +6,7 @@ import {
     transfer,
   } from './instructions';
 
-  import { Connection, Keypair, PublicKey, TransactionSignature } from '@safecoin/web3.js';
+  import { Connection, Keypair, PublicKey, Signer, TransactionInstruction, TransactionSignature } from '@safecoin/web3.js';
   
  export  function getOwnedTokenAccounts(connection: Connection, publicKey: PublicKey) 
   : Promise<{
@@ -44,6 +44,12 @@ import {
     newAccount : PublicKey,
 }) : Promise<TransactionSignature>;
 
+export  function makeCreateInitTokenAcctIx(params: {
+  payer : PublicKey,
+  mintPublicKey: PublicKey,
+  newAccount : PublicKey,
+  lamports: number
+}) : {instructions: TransactionInstruction[], signers: Signer[]}
   
   export  function transferTokens(params:{
     connection: Connection,

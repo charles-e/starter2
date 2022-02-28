@@ -37,6 +37,6 @@ export function mintTo(params: {
   mint: PublicKey,
   destination: PublicKey,
   amount: number,
-  mintAuthority: Keypair
+  mintAuthority: PublicKey
 }): TransactionInstruction;
 

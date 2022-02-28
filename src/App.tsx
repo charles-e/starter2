@@ -11,10 +11,11 @@ import { useSnackbar } from 'notistack';
 import React, { FC, ReactChild, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Theme } from './Theme';
 import AppHeaderBar from './AppHeaderBar';
-import {  Container, CssBaseline,  Link,  Paper, Stack, styled } from '@mui/material';
+import { Container, CssBaseline, Link, Paper, Stack, styled } from '@mui/material';
 import { DrawerProvider } from './drawer/DrawerProvider';
 import { TokenMetaProvider } from './tokens/TokenMetaProvider';
 import TokenDrawer from './drawer/TokenDrawer';
+import { formatTwoDecimals } from './utils/tokens/util';
 
 export const App: FC = () => {
   return (
@@ -82,7 +83,7 @@ const MiddleStack = styled(Stack)(({ theme }) => ({
 const Content: FC = () => {
   const { wallet, connected } = useWallet();
   const { connection } = useConnection();
-  const [balance, setBalance] = useState(undefined as any);
+  const [balance, setBalance] = useState(0n);
   useEffect(() => {
     async function fetchBalance() {
       console.log("check wallet...")
@@ -91,9 +92,9 @@ const Content: FC = () => {
       console.log(`key ${wallet?.adapter?.publicKey?.toBase58()}`);
       if (wallet && wallet.adapter && wallet.adapter.publicKey) {
         console.log('fetching balance...');
-        let walletBalance = await connection?.getBalance(wallet.adapter.publicKey);
-        console.log(`balance is ${walletBalance}`);
-        setBalance(walletBalance);
+        let wbNum = await connection?.getBalance(wallet.adapter.publicKey);
+        console.log(`balance is ${wbNum} lamports`);
+        setBalance(BigInt(wbNum || 0));
       }
     }
     fetchBalance();
@@ -103,11 +104,11 @@ const Content: FC = () => {
       <CssBaseline />
       <TokenMetaProvider>
         <DrawerProvider>
-          <AppHeaderBar  />
+          <AppHeaderBar />
           <Container>
             <MiddleStack maxWidth="sm" >
               {connected ? (
-                <><Item>Connected</Item><Item>Wallet Balance: {balance}</Item></>
+                <><Item>Connected</Item><Item>Wallet Balance: {formatTwoDecimals(balance)}</Item></>
               ) :
                 (
                   <><Item>

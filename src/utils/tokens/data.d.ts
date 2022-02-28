@@ -14,3 +14,4 @@ export function getOwnedAccountsFilters(publicKey: PublicKey):
         { dataSize: number }
     ];
 
+export function AccountDataSize() : number;

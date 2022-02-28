@@ -64,3 +64,12 @@ export function parseTokenAccount(data: Buffer, account: PublicKey): AccountInfo
     return accountInfo;
 }
 
+export const formatTwoDecimals = (val: bigint, dec: number = 9): string => {
+    const biDiv: bigint = BigInt(Math.pow(10, dec));
+    const remDiv = BigInt(Math.pow(10, (dec-3)));
+    const whole = val / biDiv;
+    const remainder = (val % biDiv) / remDiv;
+    const decPart = remainder == 0n ? '' : `.${remainder.toString()}`;
+    return `${whole}${decPart}`;
+  }
+  

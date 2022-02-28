@@ -9,6 +9,7 @@ import { ACCOUNT_LAYOUT, getOwnedAccountsFilters, MINT_LAYOUT } from './data';
 import bs58 from 'bs58';
 import base64js from 'base64-js';
 import { PublicKey, SystemProgram, Transaction } from '@safecoin/web3.js';
+import { ASSOCIATED_TOKEN_PROGRAM_ID } from '@safecoin/safe-token';
 
 function bufEq(buf1, buf2) {
   if (buf1.byteLength != buf2.byteLength) return false;
@@ -164,26 +165,43 @@ export async function createAndInitializeTokenAccount({
   mintPublicKey,
   newAccount,
 }) {
+
+  let { instructions, signers } = createAssociatedTokenAccountInstruction(
+    {
+      associatedProgramId: ASSOCIATED_TOKEN_PROGRAM_ID,
+      programId : TOKEN_PROGRAM_ID,
+      connection: connection, 
+      payer: payer,
+      owner: payer,
+      mint : mintPublicKey, 
+    }
+  );
   let transaction = new Transaction();
+  for (const i in instructions) {
+    transaction.add(instructions[i]);
+  }
+  return await connection.sendTransaction(transaction, signers);
+}
+
+export function makeCreateInitTokenAcctIx({
+  payer,
+  mintPublicKey,
+  newAccount,
+  lamports
+}) {
+
   let ca_ix = SystemProgram.createAccount({
     fromPubkey: payer.publicKey,
     newAccountPubkey: newAccount.publicKey,
-    lamports: await connection.getMinimumBalanceForRentExemption(
-      ACCOUNT_LAYOUT.span,
-    ),
-    space: ACCOUNT_LAYOUT.span,
+    lamports: lamports,
     programId: TOKEN_PROGRAM_ID,
   });
-  transaction.add(ca_ix);
-  transaction.add(
-    initializeAccount({
-      account: newAccount.publicKey,
-      mint: mintPublicKey,
-      owner: payer.publicKey,
-    }),
-  );
-  let signers = [payer, newAccount];
-  return await connection.sendTransaction(transaction, signers);
+  const init_ix = initializeAccount({
+    account: newAccount.publicKey,
+    mint: mintPublicKey,
+    owner: payer.publicKey,
+  });
+  return ({ instructions: [ca_ix, init_ix], signers: [payer, newAccount] });
 }
 
 export async function transferTokens({
