@@ -1,7 +1,7 @@
 
 import { Cluster, Connection, Keypair, PublicKey, PublicKeyInitData, Signer, Transaction } from '@safecoin/web3.js';
 import React, { FC, ReactChild, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
-import { Button, Container, CssBaseline, Drawer, Grid, Link, Paper, Stack, styled, Tooltip, Typography, useTheme } from '@mui/material';
+import { Button, Container, SwipeableDrawer, Grid, Link, Paper, Stack, styled, Tooltip, Typography, useTheme, Box } from '@mui/material';
 
 import { DrawerCtx } from './DrawerCtx';
 import { TokenCtx } from '../tokens/TokenCtx';
@@ -11,7 +11,7 @@ import { SignerWalletAdapter, WalletAdapter } from '@/wallet-impl/abstract-walle
 import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@safecoin/safe-token';
 import { mintTo } from '@/utils/tokens/instructions';
 import { AccountDataSize } from '../utils/tokens/data';
-import  boss  from '../resource/keys/boss.json';
+import boss from '../resource/keys/boss.json';
 import { AirDropDialog } from './AirDropDialog';
 import { useVerifyTransaction } from '@/utils/notifications2';
 import { createAssociatedTokenAccountInstruction } from '@/utils/tokens/tsInstructions';
@@ -34,9 +34,9 @@ type TBD = {
 }
 export default function TokenDrawer() {
   const theme = useTheme();
-  const [ txCount, setTxCount ] = useState(0); // bumped for each "transaction": will cause useEffect to fire
-  const [ balance, setBalance ] = useBalance();
-  const [ openADD, setOpenADD ] = useState(false);
+  const [txCount, setTxCount] = useState(0); // bumped for each "transaction": will cause useEffect to fire
+  const [balance, setBalance] = useBalance();
+  const [openADD, setOpenADD] = useState(false);
   const { connected, wallet } = useWallet();
   const { visible, setVisible } = useContext(DrawerCtx);
   const { availableTokens } = useContext(TokenCtx);
@@ -48,7 +48,7 @@ export default function TokenDrawer() {
     setVisible(false);
   }
 
-  const updateBalance = async()=> {
+  const updateBalance = async () => {
     if (wallet && wallet.adapter && wallet.adapter.publicKey) {
       console.log('fetching balance...');
       let wbNum = await connection?.getBalance(wallet.adapter.publicKey);
@@ -57,14 +57,14 @@ export default function TokenDrawer() {
     }
   }
 
-  function getAuthKeyPair() : Keypair {
+  function getAuthKeyPair(): Keypair {
     // this doesnt work:
     // const file = await import(/* @vite-ignore */ `/src/resource/keys/${authority}.json`);
     // const response = await fetch(file.default);
     // const text = await response.text();
     // console.log(text);
     // const auth = Keypair.fromSecretKey(Buffer.from(text));
-    return   Keypair.fromSecretKey(Buffer.from(boss));
+    return Keypair.fromSecretKey(Buffer.from(boss));
   }
 
   // mint the token to the user's wallet.  If necessary, create the wallet.
@@ -78,7 +78,7 @@ export default function TokenDrawer() {
   }
   ) {
 
-    if (balance < 1000n){
+    if (balance < 1000n) {
       setOpenADD(true);
       return;
     }
@@ -101,7 +101,7 @@ export default function TokenDrawer() {
       let signers: Signer[] = [];
 
       if (!targetAccount) {
-        
+
         // creating the token wallet is necessary so its in the same transaction=
         // with the token mint instruction.
 
@@ -117,11 +117,11 @@ export default function TokenDrawer() {
         let ix = createAssociatedTokenAccountInstruction(
           {
             associatedProgramId: ASSOCIATED_TOKEN_PROGRAM_ID,
-            programId : TOKEN_PROGRAM_ID,
-            associatedAccount: targetAccount, 
+            programId: TOKEN_PROGRAM_ID,
+            associatedAccount: targetAccount,
             payer: wallet.publicKey,
             owner: wallet.publicKey,
-            mint : mint, 
+            mint: mint,
           }
         );
         for (const i in ix) {
@@ -143,7 +143,7 @@ export default function TokenDrawer() {
       let buffer = transaction.serialize();
       const sig = connection.sendRawTransaction(buffer);
       if (sig) {
-        await verifyTransaction(sig,{onSuccess:updateBalance});
+        await verifyTransaction(sig, { onSuccess: updateBalance });
         setTxCount(txCount + 1);
       }
     }
@@ -225,15 +225,15 @@ export default function TokenDrawer() {
 
       if (wallet && wallet.adapter && wallet.adapter.publicKey) {
         let walletBalance = await connection?.getBalance(wallet.adapter.publicKey);
-        let biBal =  BigInt(walletBalance || 0n);
+        let biBal = BigInt(walletBalance || 0n);
         console.log(`drawer balance is ${biBal.toLocaleString()}`);
         setBalance(biBal);
       }
     }
     fetchBalance();
-    },[connection, wallet?.readyState, visible, txCount]);
+  }, [connection, wallet?.readyState, visible, txCount]);
 
-    const TokenCell = (token: TBD, n: number) => {
+  const TokenCell = (token: TBD, n: number) => {
     const tokAddr = token.mint;
     const tokAuth = token.authority;
     const pubKey = token.wallet;
@@ -246,7 +246,8 @@ export default function TokenDrawer() {
     const biBalance = token.balance as bigint;
     const dispBalance = formatTwoDecimals(biBalance || 0n, token.decimals);
     return (
-      <Grid className="centered" key={n} xs={2} item>
+      <Grid className="centered" key={n} xs={2} item spacing={0.5}>
+        <Paper sx={{padding: theme.spacing(1)}}>
         <Typography variant="h6" component="div">
           {token.nick}
         </Typography>
@@ -270,6 +271,8 @@ export default function TokenDrawer() {
                 })
             }
             }>Get Tokens</Button>)}
+                  </Paper>
+
       </Grid>
     );
   }
@@ -288,21 +291,32 @@ export default function TokenDrawer() {
     setOpenADD(false);
     setTxCount(txCount + 1);
   };
-  const myColor = theme.palette.secondary.light;
+  const toggleDrawer = (onOff: boolean)=>{
+    setVisible(onOff);
+  }
+  const myColor = theme.palette.secondary;
   return (
-    <Drawer sx={{ padding: '1em' }} className="drawermargin" hideBackdrop={true}
+    <SwipeableDrawer sx={{ padding: '1em' }} className="drawermargin" 
+      onClose={() => { setVisible(false) }} onOpen={() => { setVisible(true) }}
       anchor="bottom" open={visible}>
+      <Box
+        sx={{ width: '100%' }}
+        role="presentation"
+        onKeyDown={hideIt}
+      >
         <Tooltip title="Click to Hide">
-        <Container style={{ backgroundColor: myColor }} sx={{width: "100%"}} onClick={hideIt}>
-        <Typography variant="h5">Available Tokens:</Typography>
-        </Container>
+          <Container sx={{ width: "auto" }} onClick={hideIt}>
+            <Typography variant="h5">Available Tokens:</Typography>
+          </Container>
         </Tooltip>
-      <Grid container spacing={1} columns={{ xs: 4, sm: 8, md: 12 }}>
-        {GridGuts(tokenBalances)}
-      </Grid>
+
+        <Grid container spacing={1} columns={{ xs: 4, sm: 8, md: 12 }}>
+          {GridGuts(tokenBalances)}
+        </Grid>
+      </Box>
       <AirDropDialog open={openADD} onClose={handleCloseADD}> </AirDropDialog>
 
-    </Drawer>
+    </SwipeableDrawer>
   )
 }
 

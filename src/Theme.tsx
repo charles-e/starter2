@@ -1,5 +1,5 @@
 import { createTheme, PaletteMode, StyledEngineProvider, ThemeProvider } from '@mui/material';
-import { amber, deepOrange, deepPurple, grey } from '@mui/material/colors';
+import { amber, deepOrange, blueGrey, grey } from '@mui/material/colors';
 import { SnackbarProvider } from 'notistack';
 import React, { FC, ReactNode } from 'react';
 
@@ -23,8 +23,8 @@ const getDesignTokens = (mode: PaletteMode) => ({
                 primary: deepOrange,
                 divider: deepOrange[700],
                 background: {
-                    default: deepOrange[900],
-                    paper: deepOrange[900],
+                    default: blueGrey[900],
+                    paper: blueGrey[800],
                 },
                 text: {
                     primary: '#fff',
