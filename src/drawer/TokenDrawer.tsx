@@ -247,7 +247,7 @@ export default function TokenDrawer() {
     const biBalance = token.balance as bigint;
     const dispBalance = formatTwoDecimals(biBalance || 0n, token.decimals);
     return (
-      <Grid className="centered" key={n} xs={2} item spacing={0.5}>
+      <Grid className="centered" key={n} xs={2} item>
         <Paper sx={{padding: theme.spacing(1)}}>
         <Typography variant="h6" component="div">
           {token.nick}
