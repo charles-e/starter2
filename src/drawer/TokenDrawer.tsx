@@ -1,5 +1,5 @@
 
-import { Cluster, Connection, Keypair, PublicKey, PublicKeyInitData, Signer, Transaction } from '@safecoin/web3.js';
+import { Cluster, Connection, Keypair, PublicKey, PublicKeyInitData, Signer, Transaction, TransactionSignature } from '@safecoin/web3.js';
 import React, { FC, ReactChild, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import { Button, Container, SwipeableDrawer, Grid, Link, Paper, Stack, styled, Tooltip, Typography, useTheme, Box } from '@mui/material';
 
@@ -48,13 +48,14 @@ export default function TokenDrawer() {
     setVisible(false);
   }
 
-  const updateBalance = async () => {
+  const updateBalance = async (sig: TransactionSignature) => {
     if (wallet && wallet.adapter && wallet.adapter.publicKey) {
       console.log('fetching balance...');
       let wbNum = await connection?.getBalance(wallet.adapter.publicKey);
       console.log(`balance is ${wbNum} lamports`);
       setBalance(BigInt(wbNum || 0) as bigint);
     }
+    return sig;
   }
 
   function getAuthKeyPair(): Keypair {

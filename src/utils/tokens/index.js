@@ -7,7 +7,6 @@ import {
 } from './instructions';
 import { ACCOUNT_LAYOUT, getOwnedAccountsFilters, MINT_LAYOUT } from './data';
 import bs58 from 'bs58';
-import base64js from 'base64-js';
 import { PublicKey, SystemProgram, Transaction } from '@safecoin/web3.js';
 import { ASSOCIATED_TOKEN_PROGRAM_ID } from '@safecoin/safe-token';
 

@@ -6,13 +6,13 @@ import { confirmTransaction } from './utils';
 import { TransactionSignature } from '@safecoin/web3.js';
 
 interface TxnHandler {
-   onSuccess?: (sig: TransactionSignature) => (void), 
-    onError?: (err: any) => (void) 
+   onSuccess?: (sig: TransactionSignature) => Promise<TransactionSignature>, 
+    onError?: (err: any) => Promise<any>
 };
 type VerifyTxnType = (
   signaturePromise: Promise<TransactionSignature>,
   handlers?:TxnHandler
-) => Promise<TransactionSignature>;
+) => Promise<TransactionSignature>
 
 export function useVerifyTransaction() : [ VerifyTxnType, boolean] {
   console.log('useVerifyTransaction');
@@ -74,7 +74,7 @@ export function useVerifyTransaction() : [ VerifyTxnType, boolean] {
   return [verifyTransaction, waiting];
 }
 
-function ViewTransactionOnExplorerButton({ signature }) {
+function ViewTransactionOnExplorerButton( props: any) {
   const urlSuffix = useSafecoinExplorerUrlSuffix();
   return (
     <Button
@@ -82,43 +82,9 @@ function ViewTransactionOnExplorerButton({ signature }) {
       component="a"
       target="_blank"
       rel="noopener"
-      href={`https://explorer.solana.com/tx/${signature}` + urlSuffix}
+      href={`https://explorer.solana.com/tx/${props.signature}` + urlSuffix}
     >
       View on Safecoin Explorer
     </Button>
   );
-}
-
-export function useCallAsync() {
-  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
-  return async function callAsync(
-    promise,
-    {
-      progressMessage = 'Submitting...',
-      successMessage = 'Success',
-      onSuccess,
-      onError,
-    } = {},
-  ) {
-    let id = enqueueSnackbar(progressMessage, {
-      variant: 'info',
-      persist: true,
-    });
-    try {
-      let result = await promise;
-      closeSnackbar(id);
-      if (successMessage) {
-        enqueueSnackbar(successMessage, { variant: 'success' });
-      }
-      if (onSuccess) {
-        onSuccess(result);
-      }
-    } catch (e) {
-      closeSnackbar(id);
-      enqueueSnackbar(e.message, { variant: 'error' });
-      if (onError) {
-        onError(e);
-      }
-    }
-  };
 }
