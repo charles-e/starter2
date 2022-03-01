@@ -15,6 +15,7 @@ import  boss  from '../resource/keys/boss.json';
 import { AirDropDialog } from './AirDropDialog';
 import { useVerifyTransaction } from '@/utils/notifications2';
 import { createAssociatedTokenAccountInstruction } from '@/utils/tokens/tsInstructions';
+import { useBalance } from '@/utils/BalanceProvider';
 
 type TokenMapType = {
   [id: string]: TBD;
@@ -34,7 +35,7 @@ type TBD = {
 export default function TokenDrawer() {
   const theme = useTheme();
   const [ txCount, setTxCount ] = useState(0); // bumped for each "transaction": will cause useEffect to fire
-  const [ balanceSAFE, setBalanceSAFE ] = useState(0n);
+  const [ balance, setBalance ] = useBalance();
   const [ openADD, setOpenADD ] = useState(false);
   const { connected, wallet } = useWallet();
   const { visible, setVisible } = useContext(DrawerCtx);
@@ -47,6 +48,14 @@ export default function TokenDrawer() {
     setVisible(false);
   }
 
+  const updateBalance = async()=> {
+    if (wallet && wallet.adapter && wallet.adapter.publicKey) {
+      console.log('fetching balance...');
+      let wbNum = await connection?.getBalance(wallet.adapter.publicKey);
+      console.log(`balance is ${wbNum} lamports`);
+      setBalance(BigInt(wbNum || 0) as bigint);
+    }
+  }
 
   function getAuthKeyPair() : Keypair {
     // this doesnt work:
@@ -68,7 +77,8 @@ export default function TokenDrawer() {
     decimals: number
   }
   ) {
-    if (balanceSAFE == 0n){
+
+    if (balance < 1000n){
       setOpenADD(true);
       return;
     }
@@ -133,7 +143,7 @@ export default function TokenDrawer() {
       let buffer = transaction.serialize();
       const sig = connection.sendRawTransaction(buffer);
       if (sig) {
-        await verifyTransaction(sig);
+        await verifyTransaction(sig,{onSuccess:updateBalance});
         setTxCount(txCount + 1);
       }
     }
@@ -217,7 +227,7 @@ export default function TokenDrawer() {
         let walletBalance = await connection?.getBalance(wallet.adapter.publicKey);
         let biBal =  BigInt(walletBalance || 0n);
         console.log(`drawer balance is ${biBal.toLocaleString()}`);
-        setBalanceSAFE(biBal);
+        setBalance(biBal);
       }
     }
     fetchBalance();

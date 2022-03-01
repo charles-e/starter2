@@ -16,6 +16,7 @@ import { DrawerProvider } from './drawer/DrawerProvider';
 import { TokenMetaProvider } from './tokens/TokenMetaProvider';
 import TokenDrawer from './drawer/TokenDrawer';
 import { formatTwoDecimals } from './utils/tokens/util';
+import { BalanceProvider, useBalance } from './utils/BalanceProvider';
 
 export const App: FC = () => {
   return (
@@ -59,7 +60,9 @@ const CoinContext: FC<{ children: ReactNode }> = ({ children }) => {
   return (
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} onError={onError} autoConnect>
+        <BalanceProvider>
         <WalletDialogProvider>{children}</WalletDialogProvider>
+        </BalanceProvider>
       </WalletProvider>
     </ConnectionProvider>
   );
@@ -83,7 +86,8 @@ const MiddleStack = styled(Stack)(({ theme }) => ({
 const Content: FC = () => {
   const { wallet, connected } = useWallet();
   const { connection } = useConnection();
-  const [balance, setBalance] = useState(0n);
+  const [balance, setBalance] = useBalance();
+
   useEffect(() => {
     async function fetchBalance() {
       console.log("check wallet...")
@@ -94,7 +98,7 @@ const Content: FC = () => {
         console.log('fetching balance...');
         let wbNum = await connection?.getBalance(wallet.adapter.publicKey);
         console.log(`balance is ${wbNum} lamports`);
-        setBalance(BigInt(wbNum || 0));
+        setBalance(BigInt(wbNum || 0) as bigint);
       }
     }
     fetchBalance();
@@ -124,46 +128,4 @@ const Content: FC = () => {
 
     </>);
 };
-/*
-let MyDrawer = () => {
-  const { connected } = useWallet();
-  const { visible, setVisible } = useContext(DrawerCtx);
-  const { availableTokens } = useContext(TokenCtx);
-  const { endpoint } = useConnection();
-  console.log(endpoint);
-  const possibleTokens = availableTokens(endpoint as Cluster);
-  console.log(possibleTokens);
-  const hideIt = () => {
-    setVisible(false);
-  }
-  const TokenCell = (token :TokenMeta,n :number) => {
-    let hasButton = token.hasFaucet && connected;
-    console.log(hasButton)
-    return (
-      <Grid  className="centered" key={n} xs={2} item>
-        <Typography variant="h6" component="div">
-          {token.nick}
-          </Typography>
-          <Typography variant="body1" component="div">
-          Sponsor: {token.org}
-          </Typography>
-        {hasButton && (<Button variant="contained">Get Tokens</Button>)}
-      </Grid>
-    );
-  }
-
-  const GridGuts = (tokens: TokenMeta[]) => {
-    return tokens.map((tok, i) => TokenCell(tok, i));
-  }
-  return (
-    <Drawer sx={{padding:'1em'}} className="drawermargin" onClick={hideIt} hideBackdrop={true} 
-    anchor="bottom" open={visible}>
-      <Typography variant="h5">Available Tokens:</Typography>
-      <Grid container spacing={1}  columns={{ xs: 4, sm: 8, md: 12 }}>
-      { GridGuts(possibleTokens) }
-      </Grid>
-
-    </Drawer>
-  )
-}*/
 
